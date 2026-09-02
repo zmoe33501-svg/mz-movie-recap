@@ -232,7 +232,15 @@ const App = () => {
   const [genTimer, setGenTimer] = useState(0);
   const [errorMsg, setErrorMsg] = useState('');
   
-  const [history, setHistory] = useState([]);
+  const [history, setHistory] = useState(() => {
+    const saved = localStorage.getItem('mz_history');
+    return saved ? JSON.parse(saved) : [];
+  });
+  
+  useEffect(() => {
+    localStorage.setItem('mz_history', JSON.stringify(history));
+  }, [history]);
+
   const fileInputRef = useRef(null);
 
   const [previewCache, setPreviewCache] = useState({});
@@ -253,113 +261,15 @@ const App = () => {
   }, []);
 
   const handleClearText = () => {
-    const messageBox = document.createElement('div');
-    messageBox.style.position = 'fixed';
-    messageBox.style.top = '50%';
-    messageBox.style.left = '50%';
-    messageBox.style.transform = 'translate(-50%, -50%)';
-    messageBox.style.backgroundColor = theme === 'dark' ? '#1f2937' : '#ffffff';
-    messageBox.style.color = theme === 'dark' ? '#f3f4f6' : '#1f2937';
-    messageBox.style.padding = '20px';
-    messageBox.style.borderRadius = '8px';
-    messageBox.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
-    messageBox.style.zIndex = '1000';
-    messageBox.style.textAlign = 'center';
-
-    const messageText = document.createElement('p');
-    messageText.textContent = "ရိုက်ထားသော စာသားများအားလုံးကို ဖျက်ပစ်မည်မှာ သေချာပါသလား?";
-    messageText.style.marginBottom = '20px';
-    messageBox.appendChild(messageText);
-
-    const btnContainer = document.createElement('div');
-    btnContainer.style.display = 'flex';
-    btnContainer.style.justifyContent = 'center';
-    btnContainer.style.gap = '10px';
-
-    const confirmBtn = document.createElement('button');
-    confirmBtn.textContent = 'သေချာသည်';
-    confirmBtn.style.padding = '8px 16px';
-    confirmBtn.style.backgroundColor = '#ef4444';
-    confirmBtn.style.color = 'white';
-    confirmBtn.style.border = 'none';
-    confirmBtn.style.borderRadius = '4px';
-    confirmBtn.style.cursor = 'pointer';
-    confirmBtn.onclick = () => {
+    if(window.confirm("ရိုက်ထားသော စာသားများအားလုံးကို ဖျက်ပစ်မည်မှာ သေချာပါသလား?")) {
         setText("");
-        document.body.removeChild(messageBox);
-    };
-    btnContainer.appendChild(confirmBtn);
-
-    const cancelBtn = document.createElement('button');
-    cancelBtn.textContent = 'မလုပ်ပါ';
-    cancelBtn.style.padding = '8px 16px';
-    cancelBtn.style.backgroundColor = theme === 'dark' ? '#374151' : '#e5e7eb';
-    cancelBtn.style.color = theme === 'dark' ? '#f3f4f6' : '#374151';
-    cancelBtn.style.border = 'none';
-    cancelBtn.style.borderRadius = '4px';
-    cancelBtn.style.cursor = 'pointer';
-    cancelBtn.onclick = () => {
-        document.body.removeChild(messageBox);
-    };
-    btnContainer.appendChild(cancelBtn);
-
-    messageBox.appendChild(btnContainer);
-    document.body.appendChild(messageBox);
+    }
   };
 
   const handleClearHistory = () => { 
-    const messageBox = document.createElement('div');
-    messageBox.style.position = 'fixed';
-    messageBox.style.top = '50%';
-    messageBox.style.left = '50%';
-    messageBox.style.transform = 'translate(-50%, -50%)';
-    messageBox.style.backgroundColor = theme === 'dark' ? '#1f2937' : '#ffffff';
-    messageBox.style.color = theme === 'dark' ? '#f3f4f6' : '#1f2937';
-    messageBox.style.padding = '20px';
-    messageBox.style.borderRadius = '8px';
-    messageBox.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
-    messageBox.style.zIndex = '1000';
-    messageBox.style.textAlign = 'center';
-
-    const messageText = document.createElement('p');
-    messageText.textContent = "မှတ်တမ်းများအားလုံးကို ရှင်းလင်းမည်မှာ သေချာပါသလား? (ဤလုပ်ဆောင်ချက်ကို ပြန်ပြောင်း၍မရပါ)";
-    messageText.style.marginBottom = '20px';
-    messageBox.appendChild(messageText);
-
-    const btnContainer = document.createElement('div');
-    btnContainer.style.display = 'flex';
-    btnContainer.style.justifyContent = 'center';
-    btnContainer.style.gap = '10px';
-
-    const confirmBtn = document.createElement('button');
-    confirmBtn.textContent = 'သေချာသည်';
-    confirmBtn.style.padding = '8px 16px';
-    confirmBtn.style.backgroundColor = '#ef4444';
-    confirmBtn.style.color = 'white';
-    confirmBtn.style.border = 'none';
-    confirmBtn.style.borderRadius = '4px';
-    confirmBtn.style.cursor = 'pointer';
-    confirmBtn.onclick = () => {
-        setHistory([]); 
-        document.body.removeChild(messageBox);
-    };
-    btnContainer.appendChild(confirmBtn);
-
-    const cancelBtn = document.createElement('button');
-    cancelBtn.textContent = 'မလုပ်ပါ';
-    cancelBtn.style.padding = '8px 16px';
-    cancelBtn.style.backgroundColor = theme === 'dark' ? '#374151' : '#e5e7eb';
-    cancelBtn.style.color = theme === 'dark' ? '#f3f4f6' : '#374151';
-    cancelBtn.style.border = 'none';
-    cancelBtn.style.borderRadius = '4px';
-    cancelBtn.style.cursor = 'pointer';
-    cancelBtn.onclick = () => {
-        document.body.removeChild(messageBox);
-    };
-    btnContainer.appendChild(cancelBtn);
-
-    messageBox.appendChild(btnContainer);
-    document.body.appendChild(messageBox);
+    if(window.confirm("မှတ်တမ်းများအားလုံးကို ရှင်းလင်းမည်မှာ သေချာပါသလား? (ဤလုပ်ဆောင်ချက်ကို ပြန်ပြောင်း၍မရပါ)")) {
+        setHistory([]);
+    }
   };
 
   const handlePreview = async () => {
@@ -413,7 +323,12 @@ const App = () => {
         const bytes = new Uint8Array(binaryString.length);
         for (let j = 0; j < binaryString.length; j++) bytes[j] = binaryString.charCodeAt(j);
         return { bytes, mimeType: inlineData.mimeType, index };
-      } catch (err) { attempt++; if (attempt >= 5) throw new Error(`အပိုင်း (${index + 1}) အား ဖန်တီးရာတွင် အမှားဖြစ်နေပါသည်။`); await new Promise(r => setTimeout(r, delay)); delay *= 2; }
+      } catch (err) { 
+        attempt++; 
+        if (attempt >= 5) throw new Error(`အပိုင်း (${index + 1}) အား ဖန်တီးရာတွင် အမှားဖြစ်နေပါသည်။ ခဏစောင့်ပြီး ပြန်စမ်းကြည့်ပါ။`); 
+        await new Promise(r => setTimeout(r, delay)); 
+        delay *= 2; 
+      }
     }
   };
 
@@ -424,8 +339,17 @@ const App = () => {
     const textChunks = chunkText(text, 1200); 
     
     try {
-      setProgressText(textChunks.length > 1 ? `စာပိုဒ် (${textChunks.length}) ပိုဒ်ခွဲ၍ ဖန်တီးနေပါသည် ⚡` : 'အသံဖန်တီးနေပါသည်...');
-      const results = await Promise.all(textChunks.map((chunk, i) => fetchChunkData(chunk, i)));
+      const results = [];
+      // တစ်ပြိုင်နက်တည်း အကုန်မတောင်းဘဲ Free API ကန့်သတ်ချက်ကို ရှောင်ရှားရန် တစ်ပိုဒ်ချင်းစီ တောင်းပါမည်
+      for(let i=0; i < textChunks.length; i++) {
+         setProgressText(`အပိုင်း (${textChunks.length}) ပိုင်းအနက် (${i+1}) ပိုင်းမြောက် ဖန်တီးနေပါသည် ⚡`);
+         const res = await fetchChunkData(textChunks[i], i);
+         results.push(res);
+         // API ကန့်သတ်ချက် (Rate limit) မထိအောင် ၂ စက္ကန့် စောင့်ပေးပါမည်
+         if(i < textChunks.length - 1) {
+             await new Promise(resolve => setTimeout(resolve, 2000));
+         }
+      }
       
       let allPcmBytes = new Uint8Array(0);
       let finalSampleRate = 24000;
