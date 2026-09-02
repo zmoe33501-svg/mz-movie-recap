@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
-import { Play, Loader2, Mic, Activity, Gauge, Clock, Pause, Trash2, Download, Volume2, AlertCircle, Upload, Zap, Sun, Moon, Music, Film, Eraser, Headphones } from 'lucide-react';
+import { Play, Loader2, Mic, Activity, Gauge, Clock, Pause, Trash2, Download, Volume2, AlertCircle, Upload, FastForward, Zap, Sun, Moon, Music, Film, Eraser, FileText, Headphones } from 'lucide-react';
 
 const VOICES = [
   { id: 'Charon', name: 'အောင်အောင်', gender: 'Male' }, { id: 'Fenrir', name: 'ရဲရင့်', gender: 'Male' },
@@ -19,12 +19,23 @@ const EMOTIONS = [
   { id: 'Neutral', label: 'ပုံမှန်', emoji: '😐' }, { id: 'Happy', label: 'ပျော်ရွှင်သော', emoji: '😊' },
   { id: 'Sad', label: 'ဝမ်းနည်းသော', emoji: '😢' }, { id: 'Angry', label: 'ဒေါသထွက်သော', emoji: '😠' },
   { id: 'Calm', label: 'တည်ငြိမ်သော', emoji: '😌' }, { id: 'Energetic', label: 'တက်ကြွသော', emoji: '⚡️' },
-  { id: 'Whisper', label: 'တိုးတိုးပြော', emoji: '🤫' }, { id: 'Storytelling', label: 'ပုံပြင်ပြော', emoji: '📖' }
+  { id: 'Whisper', label: 'တိုးတိုးပြော', emoji: '🤫' }, { id: 'Storytelling', label: 'ပုံပြင်ပြော', emoji: '📖' },
+  { id: 'Professional', label: 'လုပ်ငန်းသုံး', emoji: '👔' }, { id: 'Casual', label: 'ပေါ့ပေါ့ပါးပါး', emoji: '☕️' },
+  { id: 'Fearful', label: 'ကြောက်ရွံသော', emoji: '😨' }, { id: 'Surprised', label: 'အံ့သြသော', emoji: '😲' },
+  { id: 'Excited', label: 'စိတ်လှုပ်ရှားသော', emoji: '🤩' }, { id: 'Romantic', label: 'ချစ်စရာကောင်းသော', emoji: '🥰' },
+  { id: 'Sarcastic', label: 'ခနဲ့တဲ့တဲ့', emoji: '😏' }, { id: 'Serious', label: 'လေးနက်သော', emoji: '🧐' },
+  { id: 'Confident', label: 'ယုံကြည်မှုရှိသော', emoji: '😎' }, { id: 'Shy', label: 'ရှက်တတ်သော', emoji: '😳' },
+  { id: 'Hopeful', label: 'မျှော်လင့်ချက်ရှိသော', emoji: '🤞' }, { id: 'Tired', label: 'ပင်ပန်းနေသော', emoji: '😫' }
 ];
 
 const BGM_OPTIONS = [
   { id: 'none', label: 'နောက်ခံတေးဂီတ မပါ', url: '' },
-  { id: 'suspense', label: 'သည်းထိတ်ရင်ဖို (Suspense)', url: 'https://ia802500.us.archive.org/6/items/KevinMacLeod-PreludeAndAction/Prelude%20and%20Action.mp3' }
+  { id: 'suspense', label: 'သည်းထိတ်ရင်ဖို (Suspense)', url: 'https://ia802500.us.archive.org/6/items/KevinMacLeod-PreludeAndAction/Prelude%20and%20Action.mp3' },
+  { id: 'epic', label: 'အက်ရှင် (Epic)', url: 'https://ia801309.us.archive.org/21/items/KevinMacLeod-VolatileReaction/Volatile%20Reaction.mp3' },
+  { id: 'mystery', label: 'လျှို့ဝှက်ဆန်းကြယ် (Mystery)', url: 'https://ia801402.us.archive.org/16/items/KevinMacLeod-SneakySnitch/Sneaky%20Snitch.mp3' },
+  { id: 'horror', label: 'ခြောက်ခြားဖွယ် (Horror)', url: 'https://ia801300.us.archive.org/22/items/KevinMacLeod-ClassicHorror1/Classic%20Horror%201.mp3' },
+  { id: 'sad', label: 'လွမ်းဆွေးဖွယ် (Sad)', url: 'https://ia802905.us.archive.org/20/items/KevinMacLeod-DespairAndTriumph/Despair%20and%20Triumph.mp3' },
+  { id: 'chill', label: 'အေးချမ်းသော (Chill)', url: 'https://ia902202.us.archive.org/23/items/KevinMacLeod-Carefree/Carefree.mp3' }
 ];
 
 const formatTime = (timeInSeconds) => {
@@ -105,6 +116,7 @@ const AdvancedPlayer = ({ item, onDelete, theme }) => {
 
   const handleDownload = (format) => {
     const finalName = customFileName.trim() || `MZ_Recap_${item.id}`;
+    
     if (format === 'wav' || format === 'mp3') {
       const audioLink = document.createElement("a");
       audioLink.href = item.audioUrl;
@@ -124,45 +136,72 @@ const AdvancedPlayer = ({ item, onDelete, theme }) => {
         srtLink.click();
         document.body.removeChild(srtLink);
         URL.revokeObjectURL(srtUrl);
+      } else {
+        alert("SRT Data မရှိပါ။");
       }
     }
   };
 
   const isDark = theme === 'dark';
   return (
-    <div className={`${isDark ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-200'} border rounded-2xl p-5 mb-4`}>
-      <div className="flex-1 min-w-0">
-         <div className="flex items-center gap-3 mb-2 flex-wrap">
-            <span className="bg-blue-500/20 text-blue-500 px-3 py-1 rounded-full text-xs font-bold">{item.voice.name}</span>
-            <span className="text-xs text-gray-500 ml-auto">{item.timestamp}</span>
-         </div>
-         <p className={`${isDark ? 'text-gray-200' : 'text-gray-800'} text-sm line-clamp-2`}>{item.text}</p>
+    <div className={`${isDark ? 'bg-gray-900 border-white/10' : 'bg-white border-gray-200 shadow-sm'} border rounded-2xl p-5 flex flex-col gap-4 transition-colors`}>
+      <div className="flex justify-between items-start gap-4">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-3 mb-2 flex-wrap">
+            <span className="bg-blue-500/20 text-blue-500 px-3 py-1 rounded-full text-xs font-medium border border-blue-500/20">{item.voice.name}</span>
+            <span className="bg-pink-500/20 text-pink-500 px-3 py-1 rounded-full text-xs font-medium border border-pink-500/20">{item.emotion.emoji} {item.emotion.label}</span>
+            {item.bgm && item.bgm.id !== 'none' && <span className="bg-amber-500/20 text-amber-500 px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1 border border-amber-500/20"><Music className="w-3 h-3"/> {item.bgm.label}</span>}
+            <span className="text-xs text-gray-500 ml-auto flex items-center gap-1"><Clock className="w-3 h-3" /> {item.timestamp}</span>
+          </div>
+          <p className={`${isDark ? 'text-gray-100' : 'text-gray-800'} text-sm line-clamp-2 leading-relaxed mt-3`}>{item.text}</p>
+        </div>
       </div>
       
-      <div className={`flex items-center gap-4 mt-4 ${isDark ? 'bg-black/40' : 'bg-gray-100'} p-3 rounded-2xl`}>
-        <button onClick={togglePlay} className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white shrink-0">
-          {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4 ml-1" />}
+      <div className={`flex items-center gap-4 ${isDark ? 'bg-black/40' : 'bg-gray-100'} p-3 rounded-2xl border ${isDark ? 'border-white/5' : 'border-transparent'}`}>
+        <button onClick={togglePlay} className="w-12 h-12 shrink-0 bg-blue-600 rounded-full flex items-center justify-center hover:bg-blue-500 transition-colors shadow-lg shadow-blue-500/30">
+          {isPlaying ? <Pause className="w-5 h-5 fill-white" /> : <Play className="w-5 h-5 fill-white ml-1" />}
         </button>
         <div className="flex-1 flex flex-col gap-1">
-          <input type="range" min="0" max={duration || 100} value={progress} onChange={handleSeek} className="w-full h-1.5 bg-gray-300 rounded-lg accent-blue-500" />
-          <div className="flex justify-between text-[10px] text-gray-500"><span>{formatTime(progress)}</span><span>{formatTime(duration)}</span></div>
+          <div className="flex justify-between text-xs font-medium text-gray-500 px-1"><span>{formatTime(progress)}</span><span>{formatTime(duration)}</span></div>
+          <input type="range" min="0" max={duration || 100} value={progress} onChange={handleSeek} className="w-full h-2 bg-gray-300 rounded-lg appearance-none cursor-pointer accent-blue-500" />
         </div>
+        <button onClick={changeSpeed} className={`w-12 text-xs font-bold ${isDark ? 'text-gray-400 hover:text-blue-400' : 'text-gray-600 hover:text-blue-600'}`}>{speed}x</button>
         
         <div className="relative">
-          <button onClick={() => setShowDownloads(!showDownloads)} className="p-2 bg-blue-600 text-white rounded-lg">
+          <button onClick={() => setShowDownloads(!showDownloads)} className={`p-2.5 rounded-xl transition-colors ${isDark ? 'bg-blue-600 text-white hover:bg-blue-500' : 'bg-blue-600 text-white hover:bg-blue-700'}`}>
             <Download className="w-4 h-4" />
           </button>
+          
           {showDownloads && (
-            <div className={`absolute right-0 bottom-full mb-2 w-40 rounded-xl shadow-xl border p-2 z-20 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
-              <button onClick={() => handleDownload('wav')} className="w-full text-left px-3 py-2 text-xs font-bold text-white bg-blue-600 rounded-lg mb-1">🎵 WAV Audio</button>
-              {item.subtitlesData && item.subtitlesData.length > 0 && (
-                  <button onClick={() => handleDownload('srt')} className="w-full text-left px-3 py-2 text-xs font-bold text-white bg-amber-500 rounded-lg">📝 SRT Sub</button>
-              )}
+            <div className={`absolute right-0 bottom-full mb-3 w-64 rounded-xl shadow-xl border p-3 z-20 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+              <p className={`text-xs font-bold mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>ဖိုင်နာမည်ပေးရန်</p>
+              <input 
+                type="text" 
+                value={customFileName} 
+                onChange={(e) => setCustomFileName(e.target.value)} 
+                placeholder={`MZ_Recap_${item.id}`}
+                className={`w-full text-sm p-2 rounded-lg mb-3 outline-none border ${isDark ? 'bg-gray-900 border-gray-600 text-white focus:border-blue-500' : 'bg-gray-50 border-gray-300 focus:border-blue-500'}`}
+              />
+              
+              <div className="flex flex-col gap-2">
+                <p className={`text-[10px] font-bold ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>သီးခြားစီ ဒေါင်းလုဒ်လုပ်ရန်</p>
+                <button onClick={() => handleDownload('wav')} className="flex items-center justify-between px-3 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-lg transition-colors">
+                  <span>🎵 WAV Audio (HQ)</span> <Download className="w-3.5 h-3.5" />
+                </button>
+                <button onClick={() => handleDownload('mp3')} className={`flex items-center justify-between px-3 py-2 text-xs font-bold rounded-lg transition-colors border ${isDark ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-300 text-gray-700 hover:bg-gray-100'}`}>
+                  <span>🎵 MP3 Audio (Small)</span> <Download className="w-3.5 h-3.5" />
+                </button>
+                {item.subtitlesData && item.subtitlesData.length > 0 && (
+                  <button onClick={() => handleDownload('srt')} className="flex items-center justify-between px-3 py-2 bg-amber-500 hover:bg-amber-400 text-white text-xs font-bold rounded-lg transition-colors mt-1">
+                    <span>📝 SRT Subtitle</span> <Download className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
             </div>
           )}
         </div>
-        <button onClick={() => onDelete(item.id)} className="p-2 text-red-500 bg-red-500/10 rounded-lg"><Trash2 className="w-4 h-4" /></button>
         
+        <button onClick={() => onDelete(item.id)} className="p-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-xl transition-colors"><Trash2 className="w-4 h-4" /></button>
         <audio ref={mainAudioRef} src={item.audioUrl} onTimeUpdate={handleTimeUpdate} onLoadedMetadata={() => setDuration(mainAudioRef.current.duration)} onPlay={() => { setIsPlaying(true); if(bgmAudioRef.current) bgmAudioRef.current.play(); }} onPause={() => { setIsPlaying(false); if(bgmAudioRef.current) bgmAudioRef.current.pause(); }} onEnded={() => { setIsPlaying(false); if(bgmAudioRef.current) bgmAudioRef.current.pause(); }} />
         {item.bgm && item.bgm.url && <audio ref={bgmAudioRef} src={item.bgm.url} />}
       </div>
@@ -172,17 +211,211 @@ const AdvancedPlayer = ({ item, onDelete, theme }) => {
 
 const App = () => {
   const apiKey = import.meta.env.VITE_GEMINI_API_KEY; 
-  const [theme, setTheme] = useState('dark');
+
+  const [theme, setTheme] = useState(() => localStorage.getItem('mz_theme') || 'dark');
   const [activeTab, setActiveTab] = useState('generator');
-  const [text, setText] = useState("");
-  const [selectedVoice, setSelectedVoice] = useState('Charon');
-  const [selectedEmotion, setSelectedEmotion] = useState('Neutral');
-  const [selectedBGM, setSelectedBGM] = useState('none');
+  const [text, setText] = useState(() => localStorage.getItem('mz_text') || "");
+  const [selectedVoice, setSelectedVoice] = useState(() => localStorage.getItem('mz_voice') || 'Charon');
+  const [selectedEmotion, setSelectedEmotion] = useState(() => localStorage.getItem('mz_emotion') || 'Neutral');
+  const [selectedBGM, setSelectedBGM] = useState(() => localStorage.getItem('mz_bgm') || 'none');
   
+  useEffect(() => {
+    localStorage.setItem('mz_theme', theme);
+    localStorage.setItem('mz_text', text);
+    localStorage.setItem('mz_voice', selectedVoice);
+    localStorage.setItem('mz_emotion', selectedEmotion);
+    localStorage.setItem('mz_bgm', selectedBGM);
+  }, [theme, text, selectedVoice, selectedEmotion, selectedBGM]);
+
   const [isGenerating, setIsGenerating] = useState(false);
   const [progressText, setProgressText] = useState(''); 
+  const [genTimer, setGenTimer] = useState(0);
   const [errorMsg, setErrorMsg] = useState('');
+  
   const [history, setHistory] = useState([]);
+  const fileInputRef = useRef(null);
+
+  const [previewCache, setPreviewCache] = useState({});
+  const [previewState, setPreviewState] = useState('idle');
+  const previewAudioRef = useRef(new Audio());
+
+  useEffect(() => {
+    let interval;
+    if (isGenerating) { setGenTimer(0); interval = setInterval(() => setGenTimer(prev => prev + 1), 1000); } 
+    else clearInterval(interval);
+    return () => clearInterval(interval);
+  }, [isGenerating]);
+
+  useEffect(() => {
+    const audio = previewAudioRef.current;
+    audio.onended = () => setPreviewState('idle');
+    audio.onpause = () => setPreviewState('idle');
+  }, []);
+
+  const handleClearText = () => {
+    const messageBox = document.createElement('div');
+    messageBox.style.position = 'fixed';
+    messageBox.style.top = '50%';
+    messageBox.style.left = '50%';
+    messageBox.style.transform = 'translate(-50%, -50%)';
+    messageBox.style.backgroundColor = theme === 'dark' ? '#1f2937' : '#ffffff';
+    messageBox.style.color = theme === 'dark' ? '#f3f4f6' : '#1f2937';
+    messageBox.style.padding = '20px';
+    messageBox.style.borderRadius = '8px';
+    messageBox.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
+    messageBox.style.zIndex = '1000';
+    messageBox.style.textAlign = 'center';
+
+    const messageText = document.createElement('p');
+    messageText.textContent = "ရိုက်ထားသော စာသားများအားလုံးကို ဖျက်ပစ်မည်မှာ သေချာပါသလား?";
+    messageText.style.marginBottom = '20px';
+    messageBox.appendChild(messageText);
+
+    const btnContainer = document.createElement('div');
+    btnContainer.style.display = 'flex';
+    btnContainer.style.justifyContent = 'center';
+    btnContainer.style.gap = '10px';
+
+    const confirmBtn = document.createElement('button');
+    confirmBtn.textContent = 'သေချာသည်';
+    confirmBtn.style.padding = '8px 16px';
+    confirmBtn.style.backgroundColor = '#ef4444';
+    confirmBtn.style.color = 'white';
+    confirmBtn.style.border = 'none';
+    confirmBtn.style.borderRadius = '4px';
+    confirmBtn.style.cursor = 'pointer';
+    confirmBtn.onclick = () => {
+        setText("");
+        document.body.removeChild(messageBox);
+    };
+    btnContainer.appendChild(confirmBtn);
+
+    const cancelBtn = document.createElement('button');
+    cancelBtn.textContent = 'မလုပ်ပါ';
+    cancelBtn.style.padding = '8px 16px';
+    cancelBtn.style.backgroundColor = theme === 'dark' ? '#374151' : '#e5e7eb';
+    cancelBtn.style.color = theme === 'dark' ? '#f3f4f6' : '#374151';
+    cancelBtn.style.border = 'none';
+    cancelBtn.style.borderRadius = '4px';
+    cancelBtn.style.cursor = 'pointer';
+    cancelBtn.onclick = () => {
+        document.body.removeChild(messageBox);
+    };
+    btnContainer.appendChild(cancelBtn);
+
+    messageBox.appendChild(btnContainer);
+    document.body.appendChild(messageBox);
+  };
+
+  const handleClearHistory = () => { 
+    const messageBox = document.createElement('div');
+    messageBox.style.position = 'fixed';
+    messageBox.style.top = '50%';
+    messageBox.style.left = '50%';
+    messageBox.style.transform = 'translate(-50%, -50%)';
+    messageBox.style.backgroundColor = theme === 'dark' ? '#1f2937' : '#ffffff';
+    messageBox.style.color = theme === 'dark' ? '#f3f4f6' : '#1f2937';
+    messageBox.style.padding = '20px';
+    messageBox.style.borderRadius = '8px';
+    messageBox.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
+    messageBox.style.zIndex = '1000';
+    messageBox.style.textAlign = 'center';
+
+    const messageText = document.createElement('p');
+    messageText.textContent = "မှတ်တမ်းများအားလုံးကို ရှင်းလင်းမည်မှာ သေချာပါသလား? (ဤလုပ်ဆောင်ချက်ကို ပြန်ပြောင်း၍မရပါ)";
+    messageText.style.marginBottom = '20px';
+    messageBox.appendChild(messageText);
+
+    const btnContainer = document.createElement('div');
+    btnContainer.style.display = 'flex';
+    btnContainer.style.justifyContent = 'center';
+    btnContainer.style.gap = '10px';
+
+    const confirmBtn = document.createElement('button');
+    confirmBtn.textContent = 'သေချာသည်';
+    confirmBtn.style.padding = '8px 16px';
+    confirmBtn.style.backgroundColor = '#ef4444';
+    confirmBtn.style.color = 'white';
+    confirmBtn.style.border = 'none';
+    confirmBtn.style.borderRadius = '4px';
+    confirmBtn.style.cursor = 'pointer';
+    confirmBtn.onclick = () => {
+        setHistory([]); 
+        document.body.removeChild(messageBox);
+    };
+    btnContainer.appendChild(confirmBtn);
+
+    const cancelBtn = document.createElement('button');
+    cancelBtn.textContent = 'မလုပ်ပါ';
+    cancelBtn.style.padding = '8px 16px';
+    cancelBtn.style.backgroundColor = theme === 'dark' ? '#374151' : '#e5e7eb';
+    cancelBtn.style.color = theme === 'dark' ? '#f3f4f6' : '#374151';
+    cancelBtn.style.border = 'none';
+    cancelBtn.style.borderRadius = '4px';
+    cancelBtn.style.cursor = 'pointer';
+    cancelBtn.onclick = () => {
+        document.body.removeChild(messageBox);
+    };
+    btnContainer.appendChild(cancelBtn);
+
+    messageBox.appendChild(btnContainer);
+    document.body.appendChild(messageBox);
+  };
+
+  const handlePreview = async () => {
+    if(!apiKey) return setErrorMsg("Vercel တွင် VITE_GEMINI_API_KEY ကို ထည့်ပေးပါ။");
+    if (previewState === 'playing') { previewAudioRef.current.pause(); setPreviewState('idle'); return; }
+    const voice = VOICES.find(v => v.id === selectedVoice);
+    const introText = `မင်္ဂလာပါ၊ ${voice.gender === 'Male' ? 'ကျွန်တော်' : 'ကျွန်မ'} ကတော့ ${voice.name} ပါ။`;
+    if (previewCache[selectedVoice]) { previewAudioRef.current.src = previewCache[selectedVoice]; previewAudioRef.current.play(); setPreviewState('playing'); return; }
+    setPreviewState('loading'); setErrorMsg('');
+    try {
+      const payload = { contents: [{ parts: [{ text: introText }] }], generationConfig: { responseModalities: ["AUDIO"], speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: selectedVoice } } } }, model: "gemini-2.5-flash-preview-tts" };
+      let attempt = 0, delay = 1000;
+      let response, data;
+      while (attempt < 5) {
+          try {
+              response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+              data = await response.json();
+              if (!response.ok) throw new Error(data.error?.message);
+              break;
+          } catch(err) {
+              attempt++;
+              if(attempt >= 5) throw err;
+              await new Promise(r => setTimeout(r, delay));
+              delay *= 2;
+          }
+      }
+      const inlineData = data.candidates?.[0]?.content?.parts?.[0]?.inlineData;
+      const binaryString = atob(inlineData.data);
+      const bytes = new Uint8Array(binaryString.length);
+      for (let j = 0; j < binaryString.length; j++) bytes[j] = binaryString.charCodeAt(j);
+      let finalSampleRate = 24000; const rateMatch = inlineData.mimeType.match(/rate=(\d+)/);
+      if (rateMatch) finalSampleRate = parseInt(rateMatch[1], 10);
+      const wavBlob = createWavFile(bytes, finalSampleRate);
+      const audioUrl = URL.createObjectURL(wavBlob);
+      setPreviewCache(prev => ({...prev, [selectedVoice]: audioUrl}));
+      previewAudioRef.current.src = audioUrl; previewAudioRef.current.play(); setPreviewState('playing');
+    } catch (err) { setErrorMsg("နမူနာအသံ ယူရာတွင် အမှားဖြစ်နေပါသည်။ API Key စစ်ဆေးပါ။"); setPreviewState('idle'); }
+  };
+
+  const fetchChunkData = async (chunkText, index) => {
+    const promptText = selectedEmotion !== 'Neutral' ? `Say in a ${selectedEmotion.toLowerCase()} tone: ${chunkText}` : chunkText;
+    const payload = { contents: [{ parts: [{ text: promptText }] }], generationConfig: { responseModalities: ["AUDIO"], speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: selectedVoice } } } }, model: "gemini-2.5-flash-preview-tts" };
+    let attempt = 0, delay = 1000;
+    while (attempt < 5) {
+      try {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error?.message);
+        const inlineData = data.candidates?.[0]?.content?.parts?.[0]?.inlineData;
+        const binaryString = atob(inlineData.data);
+        const bytes = new Uint8Array(binaryString.length);
+        for (let j = 0; j < binaryString.length; j++) bytes[j] = binaryString.charCodeAt(j);
+        return { bytes, mimeType: inlineData.mimeType, index };
+      } catch (err) { attempt++; if (attempt >= 5) throw new Error(`အပိုင်း (${index + 1}) အား ဖန်တီးရာတွင် အမှားဖြစ်နေပါသည်။`); await new Promise(r => setTimeout(r, delay)); delay *= 2; }
+    }
+  };
 
   const handleGenerate = async () => {
     if(!apiKey) return setErrorMsg("Vercel တွင် VITE_GEMINI_API_KEY ကို ထည့်ပေးပါ။");
@@ -191,18 +424,8 @@ const App = () => {
     const textChunks = chunkText(text, 1200); 
     
     try {
-      setProgressText('အသံဖန်တီးနေပါသည်...');
-      const results = [];
-      for(let i=0; i<textChunks.length; i++) {
-        const payload = { contents: [{ parts: [{ text: textChunks[i] }] }], generationConfig: { responseModalities: ["AUDIO"], speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: selectedVoice } } } }, model: "gemini-2.5-flash-preview-tts" };
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-        const data = await response.json();
-        const inlineData = data.candidates?.[0]?.content?.parts?.[0]?.inlineData;
-        const binaryString = atob(inlineData.data);
-        const bytes = new Uint8Array(binaryString.length);
-        for (let j = 0; j < binaryString.length; j++) bytes[j] = binaryString.charCodeAt(j);
-        results.push({ bytes, mimeType: inlineData.mimeType, index: i });
-      }
+      setProgressText(textChunks.length > 1 ? `စာပိုဒ် (${textChunks.length}) ပိုဒ်ခွဲ၍ ဖန်တီးနေပါသည် ⚡` : 'အသံဖန်တီးနေပါသည်...');
+      const results = await Promise.all(textChunks.map((chunk, i) => fetchChunkData(chunk, i)));
       
       let allPcmBytes = new Uint8Array(0);
       let finalSampleRate = 24000;
@@ -210,70 +433,148 @@ const App = () => {
       let subtitlesData = [];
 
       for (let i = 0; i < results.length; i++) {
-        if (results[i].index === 0 && results[i].mimeType.match(/rate=(\d+)/)) finalSampleRate = parseInt(results[i].mimeType.match(/rate=(\d+)/)[1], 10);
-        const mergedBytes = new Uint8Array(allPcmBytes.length + results[i].bytes.length);
+        if (!results[i]) continue;
+        if (results[i].index === 0 && results[i].mimeType.match(/rate=(\d+)/)) {
+          finalSampleRate = parseInt(results[i].mimeType.match(/rate=(\d+)/)[1], 10);
+        }
+        const silenceBytesLength = i > 0 ? Math.floor((finalSampleRate * 2) * 0.3) : 0; 
+        const mergedBytes = new Uint8Array(allPcmBytes.length + silenceBytesLength + results[i].bytes.length);
         mergedBytes.set(allPcmBytes);
-        mergedBytes.set(results[i].bytes, allPcmBytes.length);
+        if (silenceBytesLength > 0) mergedBytes.set(new Uint8Array(silenceBytesLength), allPcmBytes.length);
+        mergedBytes.set(results[i].bytes, allPcmBytes.length + silenceBytesLength);
         allPcmBytes = mergedBytes;
 
+        const silenceDuration = i > 0 ? 0.3 : 0;
         const chunkDuration = results[i].bytes.length / (finalSampleRate * 2); 
-        subtitlesData.push({ id: i + 1, start: formatSrtTime(currentTimeSeconds), end: formatSrtTime(currentTimeSeconds + chunkDuration), text: textChunks[i] });
-        currentTimeSeconds += chunkDuration;
+        const startTime = currentTimeSeconds + silenceDuration;
+        const endTime = startTime + chunkDuration;
+        
+        subtitlesData.push({ id: i + 1, start: formatSrtTime(startTime), end: formatSrtTime(endTime), text: textChunks[i] });
+        currentTimeSeconds = endTime;
       }
 
       const wavBlob = createWavFile(allPcmBytes, finalSampleRate);
       const audioUrl = URL.createObjectURL(wavBlob);
       
-      setHistory(prev => [{ id: Date.now(), text, voice: VOICES.find(v => v.id === selectedVoice), emotion: EMOTIONS.find(e => e.id === selectedEmotion), bgm: BGM_OPTIONS.find(b => b.id === selectedBGM), audioUrl, subtitlesData, timestamp: new Date().toLocaleString() }, ...prev]); 
+      const newItem = { 
+        id: Date.now(), text: text, voice: VOICES.find(v => v.id === selectedVoice), emotion: EMOTIONS.find(e => e.id === selectedEmotion), bgm: BGM_OPTIONS.find(b => b.id === selectedBGM), audioUrl, subtitlesData, timestamp: new Date().toLocaleString() 
+      };
+      
+      setHistory(prev => [newItem, ...prev]); 
       setActiveTab('history'); 
-    } catch (err) { setErrorMsg("အမှားအယွင်းဖြစ်ပေါ်နေပါသည်။ API Key စစ်ဆေးပါ။"); } 
+    } catch (err) { setErrorMsg(err.message || "အမှားအယွင်းဖြစ်ပေါ်နေပါသည်။"); } 
     finally { setIsGenerating(false); setProgressText(''); }
   };
 
   const isDark = theme === 'dark';
+  const appBg = isDark ? 'bg-gray-950 text-white' : 'bg-gray-50 text-gray-900';
+  const panelBg = isDark ? 'bg-gray-900 border-white/10' : 'bg-white border-gray-200 shadow-xl shadow-gray-200/50';
+
   return (
-    <div className={`min-h-screen ${isDark ? 'bg-gray-950 text-white' : 'bg-gray-50 text-gray-900'} p-4 md:p-6 font-sans`}>
-      <header className="max-w-4xl mx-auto flex justify-between items-center pb-6 border-b border-gray-500/20">
-        <h1 className="text-xl md:text-2xl font-black bg-gradient-to-r from-blue-400 to-blue-500 bg-clip-text text-transparent flex items-center gap-2"><Film className="w-6 h-6 text-blue-500"/> MZ Movie Recap</h1>
-        <div className="flex gap-2">
-            <button onClick={() => setActiveTab('generator')} className={`px-4 py-2 rounded-full text-sm font-bold ${activeTab === 'generator' ? 'bg-blue-600 text-white' : 'text-gray-500'}`}>ဖန်တီးရန်</button>
-            <button onClick={() => setActiveTab('history')} className={`px-4 py-2 rounded-full text-sm font-bold ${activeTab === 'history' ? 'bg-purple-600 text-white' : 'text-gray-500'}`}>မှတ်တမ်း</button>
+    <div className={`min-h-screen ${appBg} p-4 md:p-6 font-sans transition-colors duration-300 selection:bg-blue-500/30`}>
+      <header className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6 pb-8 border-b border-gray-500/20">
+        <div className="flex items-center gap-4">
+          <div className="p-3 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl shadow-lg shadow-purple-500/20"><Film className="w-8 h-8 text-white" /></div>
+          <h1 className="text-2xl md:text-3xl font-black tracking-tight flex items-center flex-wrap gap-2">
+            <span className="bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-500 bg-clip-text text-transparent drop-shadow-sm">Text to Voice</span>
+            <span className={`text-xl ${isDark ? 'text-gray-600' : 'text-gray-300'} font-light`}>|</span>
+            <span className="bg-gradient-to-r from-amber-400 via-orange-500 to-rose-500 bg-clip-text text-transparent drop-shadow-sm">MZ Movie Recap</span>
+          </h1>
+        </div>
+        <div className="flex items-center gap-4">
+          <button onClick={() => setTheme(isDark ? 'light' : 'dark')} className={`p-2.5 rounded-full transition-all ${isDark ? 'bg-gray-800 text-yellow-400 hover:bg-gray-700' : 'bg-white text-gray-700 shadow-md hover:bg-gray-50'}`}>
+            {isDark ? <Sun className="w-5 h-5"/> : <Moon className="w-5 h-5"/>}
+          </button>
+          <div className={`flex gap-2 p-1 rounded-full text-sm font-bold border ${isDark ? 'bg-gray-900 border-white/5' : 'bg-white border-gray-200 shadow-sm'}`}>
+              <button onClick={() => setActiveTab('generator')} className={`px-6 py-2.5 rounded-full transition-all ${activeTab === 'generator' ? 'bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-md shadow-blue-500/20' : 'text-gray-500 hover:text-gray-400'}`}>ဖန်တီးရန်</button>
+              <button onClick={() => setActiveTab('history')} className={`px-6 py-2.5 rounded-full transition-all ${activeTab === 'history' ? 'bg-gradient-to-r from-purple-600 to-purple-500 text-white shadow-md shadow-purple-500/20' : 'text-gray-500 hover:text-gray-400'}`}>မှတ်တမ်း</button>
+          </div>
         </div>
       </header>
 
-      <main className="max-w-4xl mx-auto mt-6">
+      <main className="max-w-6xl mx-auto mt-10">
         {activeTab === 'generator' && (
-          <div className="space-y-4">
-            <div className={`p-4 rounded-2xl border ${isDark ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-200'}`}>
-               <textarea value={text} onChange={(e) => setText(e.target.value)} placeholder="ဇာတ်လမ်းပြန်ပြောစာသားများကို ဤနေရာတွင် ရိုက်ထည့်ပါ..." className={`w-full h-[250px] bg-transparent outline-none resize-none text-base ${isDark ? 'text-gray-100' : 'text-gray-800'}`} />
-            </div>
-            {errorMsg && <div className="bg-red-500/10 text-red-500 p-3 rounded-xl text-sm font-bold flex items-center gap-2"><AlertCircle className="w-5 h-5"/> {errorMsg}</div>}
-            
-            <div className={`p-4 rounded-2xl border ${isDark ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-200'} grid grid-cols-2 gap-4`}>
-                <div>
-                    <label className="block text-xs font-bold mb-2 text-gray-400">အသံသရုပ်ဆောင်</label>
-                    <select value={selectedVoice} onChange={(e) => setSelectedVoice(e.target.value)} className={`w-full p-3 rounded-xl border outline-none text-sm ${isDark ? 'bg-gray-950 border-gray-800 text-white' : 'bg-gray-50 border-gray-300'}`}>
-                        {VOICES.map(v => <option key={v.id} value={v.id}>{v.name}</option>)}
-                    </select>
+          <div className="grid lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2 space-y-4">
+              <div className={`relative ${panelBg} rounded-2xl focus-within:ring-2 focus-within:ring-blue-500/50 transition-all overflow-hidden`}>
+                <div className={`flex justify-between items-center px-5 py-4 border-b ${isDark ? 'border-white/5 bg-gray-900/50' : 'border-gray-100 bg-gray-50'}`}>
+                  <span className="text-sm font-bold text-gray-400 flex items-center gap-2"><Mic className="w-4 h-4"/> ဇာတ်လမ်းစာသား ထည့်သွင်းပါ</span>
+                  <div className="flex gap-2">
+                    <button onClick={handleClearText} className={`flex items-center gap-1.5 text-xs font-bold px-3 py-2 rounded-xl transition-all ${isDark ? 'text-red-400 hover:bg-red-500/10' : 'text-red-500 hover:bg-red-50'}`} title="စာသားများ ဖျက်ရန်"><Eraser className="w-4 h-4" /> ရှင်းမည်</button>
+                    <button onClick={() => fileInputRef.current?.click()} className={`flex items-center gap-2 text-xs font-bold px-4 py-2 rounded-xl border transition-all ${isDark ? 'bg-gray-800 text-blue-400 border-blue-500/20 hover:bg-gray-700' : 'bg-blue-50 text-blue-600 border-blue-200 hover:bg-blue-100'}`}><Upload className="w-4 h-4" /> ဖိုင်မှယူရန်</button>
+                    <input type="file" accept=".txt" ref={fileInputRef} onChange={(e) => { const f = e.target.files[0]; if(f) { const r = new FileReader(); r.onload = (e) => setText(e.target.result); r.readAsText(f); e.target.value = null; } }} className="hidden" />
+                  </div>
                 </div>
-                <div>
-                     <label className="block text-xs font-bold mb-2 text-gray-400">စိတ်ခံစားချက်</label>
-                     <select value={selectedEmotion} onChange={(e) => setSelectedEmotion(e.target.value)} className={`w-full p-3 rounded-xl border outline-none text-sm ${isDark ? 'bg-gray-950 border-gray-800 text-white' : 'bg-gray-50 border-gray-300'}`}>
-                        {EMOTIONS.map(e => <option key={e.id} value={e.id}>{e.emoji} {e.label}</option>)}
-                    </select>
+                <textarea value={text} onChange={(e) => setText(e.target.value)} placeholder="MZ Movie Recap အတွက် ဇာတ်လမ်းပြန်ပြောစာသားများကို ဤနေရာတွင် ရိုက်ထည့်ပါ..." className={`w-full h-[380px] bg-transparent p-6 outline-none resize-none text-lg leading-relaxed custom-scrollbar ${isDark ? 'text-gray-100' : 'text-gray-800'}`} />
+                <div className={`absolute bottom-4 right-4 text-xs font-bold px-3 py-1.5 rounded-lg border flex items-center gap-2 ${isDark ? 'bg-gray-950/80 text-gray-400 border-white/10 backdrop-blur-sm' : 'bg-white/80 text-gray-600 border-gray-200 backdrop-blur-sm shadow-sm'}`}>
+                  📝 စာလုံးရေ: {text.length} <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse ml-1" title="Auto-saving enabled"></span>
                 </div>
-            </div>
+              </div>
 
-            <button onClick={handleGenerate} disabled={isGenerating} className={`w-full py-4 rounded-2xl font-bold text-lg flex justify-center items-center gap-2 ${isGenerating ? 'bg-gray-600 text-white/50' : 'bg-blue-600 text-white'}`}>
-                {isGenerating ? <><Loader2 className="w-5 h-5 animate-spin" /> {progressText}</> : <><Play className="w-5 h-5" /> အသံဖန်တီးရန်</>}
-            </button>
+              {errorMsg && <div className="bg-red-500/10 border border-red-500/20 text-red-500 px-4 py-3 rounded-xl flex items-center gap-3"><AlertCircle className="w-5 h-5" /> <p className="text-sm font-medium">{errorMsg}</p></div>}
+
+              <button onClick={handleGenerate} disabled={isGenerating || text.trim().length === 0}
+                className={`w-full py-5 rounded-2xl font-black text-lg flex justify-center items-center gap-3 transition-all ${isGenerating ? 'bg-gray-600 text-white/50 cursor-not-allowed' : 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-500 hover:to-indigo-500 shadow-xl shadow-blue-500/25 transform hover:-translate-y-1'}`}>
+                {isGenerating ? <><Zap className="w-6 h-6 text-yellow-300 animate-pulse" /> <span>{progressText} ({formatTime(genTimer)})</span></> : <><Play className="w-6 h-6 fill-white" /> <span>Recap အသံ ဖန်တီးရန်</span></>}
+              </button>
+            </div>
+            
+            <div className="space-y-6">
+              <div className={`${panelBg} rounded-2xl p-6`}>
+                <div className="mb-6">
+                  <label className="text-sm font-black mb-3 flex items-center gap-2"><Activity className="w-4 h-4 text-blue-500" /> အသံသရုပ်ဆောင်</label>
+                  <div className="flex gap-2 items-center">
+                    <select value={selectedVoice} onChange={(e) => { setSelectedVoice(e.target.value); setPreviewState('idle'); previewAudioRef.current.pause(); }} className={`flex-1 p-3.5 rounded-xl border outline-none font-medium ${isDark ? 'bg-gray-950 border-white/10 text-white' : 'bg-gray-50 border-gray-300 text-gray-900'}`}>
+                        {VOICES.map(v => <option key={v.id} value={v.id}>{v.name} ({v.gender})</option>)}
+                    </select>
+                    <button onClick={handlePreview} disabled={previewState === 'loading'} className={`flex flex-col items-center justify-center p-2 rounded-xl border w-[72px] h-[54px] transition-colors ${previewState === 'playing' ? 'bg-blue-500/20 border-blue-500 text-blue-500' : isDark ? 'bg-gray-950 border-white/10 text-blue-400 hover:border-blue-500/50' : 'bg-blue-50 border-blue-200 text-blue-600 hover:bg-blue-100'}`} title="အသံနမူနာ နားထောင်ရန်">
+                      {previewState === 'loading' ? <Loader2 className="w-4 h-4 animate-spin mb-1" /> : previewState === 'playing' ? <Pause className="w-4 h-4 mb-1" /> : <Volume2 className="w-4 h-4 mb-1" />}
+                      <span className="text-[10px] font-bold">နမူနာ</span>
+                    </button>
+                  </div>
+                </div>
+                
+                <div className="mb-6">
+                  <label className="text-sm font-black mb-3 flex items-center gap-2"><Gauge className="w-4 h-4 text-pink-500" /> စိတ်ခံစားချက်</label>
+                  <div className="grid grid-cols-2 gap-2 h-48 overflow-y-auto pr-2 custom-scrollbar">
+                    {EMOTIONS.map(e => (
+                      <button key={e.id} onClick={() => setSelectedEmotion(e.id)} className={`p-3 text-sm rounded-xl border flex items-center justify-start px-3 gap-3 transition-all ${selectedEmotion === e.id ? 'bg-gradient-to-r from-pink-500/20 to-purple-500/20 border-pink-500 text-pink-500 font-bold shadow-sm' : isDark ? 'bg-gray-950 border-white/5 text-gray-400 hover:bg-gray-800' : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-white'}`}>
+                        <span className="text-lg">{e.emoji}</span> <span className="truncate">{e.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-sm font-black mb-3 flex items-center gap-2"><Music className="w-4 h-4 text-amber-500" /> နောက်ခံတေးဂီတ (BGM)</label>
+                  <select value={selectedBGM} onChange={(e) => setSelectedBGM(e.target.value)} className={`w-full p-4 rounded-xl border outline-none font-medium ${isDark ? 'bg-gray-950 border-white/10 text-white focus:border-amber-500/50' : 'bg-gray-50 border-gray-300 text-gray-900 focus:border-amber-500'}`}>
+                      {BGM_OPTIONS.map(b => <option key={b.id} value={b.id}>{b.label}</option>)}
+                  </select>
+                </div>
+              </div>
+            </div>
           </div>
         )}
 
         {activeTab === 'history' && (
-          <div className="space-y-4">
-            {history.map((item) => <AdvancedPlayer key={item.id} item={item} theme={theme} onDelete={(id) => setHistory(prev => prev.filter(i => i.id !== id))} />)}
-            {history.length === 0 && <div className="text-center text-gray-500 mt-20 flex flex-col items-center"><Headphones className="w-16 h-16 mb-4 opacity-20"/>မှတ်တမ်း မရှိသေးပါ။</div>}
+          <div className="space-y-4 pb-20">
+            {history.length > 0 && (
+              <div className="flex justify-between items-center mb-4 px-2">
+                <h2 className={`font-bold ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>ဖန်တီးထားသော အသံများ ({history.length})</h2>
+                <button onClick={handleClearHistory} className={`text-xs flex items-center gap-1.5 px-3 py-2 rounded-lg font-bold transition-all ${isDark ? 'text-red-400 hover:bg-red-500/10' : 'text-red-500 hover:bg-red-50'}`}>
+                  <Trash2 className="w-4 h-4"/> မှတ်တမ်းအားလုံးဖျက်မည်
+                </button>
+              </div>
+            )}
+            
+            {history.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-32 text-gray-500">
+                <Headphones className="w-20 h-20 mb-6 opacity-20" /> 
+                <p className="text-lg font-medium">မှတ်တမ်း မရှိသေးပါ။ အသံစတင်ဖန်တီးပါ။</p>
+              </div>
+            ) : (
+              history.map((item) => <AdvancedPlayer key={item.id} item={item} theme={theme} onDelete={(id) => setHistory(prev => prev.filter(i => i.id !== id))} />)
+            )}
           </div>
         )}
       </main>
